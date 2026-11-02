@@ -1,0 +1,26 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Channel run data and generated search outputs
+# (Preserve folder structure via .gitkeep)
+runs/*
+!runs/.gitkeep
+output/*
+!output/.gitkeep
+
+# Environments & IDEs
+.venv/
+venv/
+env/
+.idea/
+.vscode/
+
+# OS artifacts & archives
+*.zip
+Thumbs.db
+.DS_Store
+push_to_github.bat

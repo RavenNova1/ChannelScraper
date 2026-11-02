@@ -1,0 +1,8 @@
+# ChannelScraper 2.0 Dependencies
+# -------------------------------------------------------------
+# ChannelScraper runs 100% out of the box using Python's built-in
+# standard library (no pip packages required for normal operation).
+# yt-dlp is already pre-bundled in bin/yt-dlp.exe for Windows.
+#
+# Optional high-compression package (saves an additional ~500 KB on search.html):
+zopfli>=0.2.3

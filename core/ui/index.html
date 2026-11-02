@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مُفَرِّغ القناة 2.0 — ChannelScraper</title>
+<style>
+  :root{
+    --bg:#090d14; --card:#121824; --card2:#0d131e; --line:#1e293b; --txt:#e2e8f0;
+    --dim:#94a3b8; --dim2:#64748b; --acc:#38bdf8; --acc-glow:rgba(56,189,248,.15);
+    --ok:#10b981; --warn:#f59e0b; --red:#ef4444; --num:#1e293b;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  body.light{
+    --bg:#f8fafc; --card:#ffffff; --card2:#f1f5f9; --line:#e2e8f0; --txt:#0f172a;
+    --dim:#475569; --dim2:#64748b; --acc:#0284c7; --acc-glow:rgba(2,132,199,.12);
+    --ok:#059669; --warn:#d97706; --red:#dc2626; --num:#e2e8f0;
+    --shadow:0 6px 20px rgba(0,0,0,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--txt);
+    font:15px/1.65 "Segoe UI","Noto Naskh Arabic","Traditional Arabic",Tahoma,Arial,sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:22px 18px 70px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+  .brand{display:flex;flex-direction:column;gap:3px}
+  .brand h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:10px}
+  .brand .tag{font-size:12px;background:var(--acc);color:#031422;padding:2px 8px;border-radius:6px;font-weight:700}
+  body.light .brand .tag{color:#fff}
+  .brand .sub{color:var(--dim);font-size:13.5px}
+  .topbtns{display:flex;gap:8px;flex-wrap:wrap}
+  button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);
+    background:var(--card);color:var(--txt);padding:9px 15px;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+  button:hover:not(:disabled){border-color:var(--acc);color:var(--acc)}
+  button:disabled{opacity:.4;cursor:default}
+  button.primary{background:var(--acc);border-color:var(--acc);color:#031422;font-weight:700}
+  button.primary:hover:not(:disabled){background:#60cbf9;border-color:#60cbf9;color:#031422}
+  body.light button.primary{color:#fff}
+  button.success{background:var(--ok);border-color:var(--ok);color:#021e14;font-weight:700}
+  button.success:hover:not(:disabled){background:#34d399;border-color:#34d399;color:#021e14}
+  body.light button.success{color:#fff}
+  button.danger{border-color:#5b2a2a;color:#ff9c9c;background:#241212}
+  button.danger:hover:not(:disabled){border-color:var(--red);color:#ffb3b3}
+  .theme-btn{padding:8px 12px;font-size:16px}
+
+  /* One-Click Quick Start Box */
+  .quick-box{background:linear-gradient(135deg,rgba(56,189,248,.07),rgba(16,185,129,.05));
+    border:2px solid #244160;border-radius:16px;padding:20px;margin-bottom:20px;box-shadow:var(--shadow)}
+  body.light .quick-box{border-color:#bae6fd;background:#f0f9ff}
+  .quick-box h2{margin:0 0 6px;font-size:17.5px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .quick-box .hint{color:var(--dim);font-size:13px;margin-bottom:14px}
+  .quick-row{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+  .inp-url{flex:1;min-width:280px;background:var(--card2);border:1px solid var(--line);
+    border-radius:11px;padding:12px 16px;color:var(--txt);font:15px inherit}
+  .inp-url:focus{outline:2px solid var(--acc);outline-offset:-1px}
+  .quick-options{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:12px;font-size:13px;color:var(--dim)}
+  .quick-options label{display:flex;align-items:center;gap:6px;cursor:pointer}
+
+  /* Run Switcher Bar */
+  .run-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:18px}
+  .run-bar .left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .run-bar select{background:var(--card2);border:1px solid var(--line);color:var(--txt);
+    border-radius:9px;padding:8px 12px;font:14px inherit;min-width:240px;max-width:380px}
+  .run-bar .folder-label{font-size:12px;color:var(--dim2);direction:ltr;font-family:Consolas,monospace}
+
+  /* Metric Chips */
+  .chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+  .chip{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:10px 16px;font-size:13.5px;color:var(--dim);display:flex;flex-direction:column;gap:3px;flex:1;min-width:130px}
+  .chip .val{font-size:18px;font-weight:700;color:var(--txt)}
+
+  /* Progress Bar */
+  .overall{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:14px 18px;margin-bottom:18px;box-shadow:var(--shadow)}
+  .overall .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px}
+  .overall .lbl{font-size:14px;color:var(--dim);font-weight:600}
+  .overall .pct{font-weight:800;font-size:17px;color:var(--acc)}
+  .bar{height:10px;border-radius:99px;background:var(--card2);overflow:hidden;border:1px solid var(--line)}
+  .bar i{display:block;height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,#0284c7,#38bdf8);transition:width .35s ease}
+  .bar i.done{background:linear-gradient(90deg,#059669,#10b981)}
+  .bar i.err{background:linear-gradient(90deg,#b91c1c,#ef4444)}
+  .bar i.live{background-image:linear-gradient(90deg,#0284c7,#38bdf8),
+    repeating-linear-gradient(45deg,rgba(255,255,255,.18) 0 10px,transparent 10px 20px);
+    background-size:100% 100%,36px 100%;animation:slide 1s linear infinite}
+  @keyframes slide{to{background-position:0 0,-36px 0}}
+
+  /* Big Action Card */
+  .hero-action{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+    background:linear-gradient(135deg,#062b1f,#0a3f2d);border:1px solid #176449;border-radius:14px;
+    padding:16px 20px;margin-bottom:18px;box-shadow:0 8px 24px rgba(16,185,129,.12)}
+  body.light .hero-action{background:#ecfdf5;border-color:#a7f3d0}
+  .hero-action .info h3{margin:0;font-size:17px;color:#6ee7b7;font-weight:700}
+  body.light .hero-action .info h3{color:#065f46}
+  .hero-action .info p{margin:4px 0 0;font-size:13px;color:#a7f3d0}
+  body.light .hero-action .info p{color:#047857}
+  .hero-action button{font-size:15px;padding:12px 24px}
+
+  /* Stage Cards */
+  .stages{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+  .stage{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:14px 18px;display:flex;gap:14px;align-items:flex-start;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+  .stage::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:4px;
+    background:#233245;transition:.2s}
+  .stage[data-s="done"]::before{background:var(--ok)}
+  .stage[data-s="running"]::before{background:var(--acc)}
+  .stage[data-s="error"]::before{background:var(--red)}
+  .stage[data-s="ready"]::before{background:#2f5c87}
+  .num{flex:0 0 34px;height:34px;border-radius:50%;background:var(--num);
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;
+    color:var(--dim);border:1px solid var(--line)}
+  .stage[data-s="done"] .num{background:#0e3325;color:var(--ok);border-color:#1a5940}
+  .stage[data-s="running"] .num{background:#0b2c45;color:var(--acc);border-color:#1c557d}
+  .stage[data-s="error"] .num{background:#3b1515;color:#ff9c9c;border-color:#6b2828}
+  .body{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+  .head{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .head h2{margin:0;font-size:15.5px;font-weight:600}
+  .pill{font-size:11.5px;padding:2px 10px;border-radius:99px;border:1px solid var(--line);
+    color:var(--dim2);background:var(--card2)}
+  .pill.done{color:var(--ok);border-color:#1f5540;background:#0d2d20}
+  .pill.running{color:var(--acc);border-color:#1e4f73;background:#0d263b}
+  .pill.error{color:#ff9c9c;border-color:#5b2a2a;background:#2a1616}
+  .pill.ready{color:#a9c4dd;border-color:#2b4258}
+  .desc{margin:0;color:var(--dim);font-size:13px;line-height:1.6}
+  .stage-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:2px}
+  .stage-row .bar{flex:1;min-width:180px}
+  .meta{font-size:12.5px;color:var(--dim2);display:flex;gap:12px;flex-wrap:wrap}
+  .meta b{color:var(--txt);font-weight:600}
+
+  /* Files Output Grid */
+  .files{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+  .file{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;
+    display:flex;flex-direction:column;gap:8px;min-width:0}
+  .file .n{font-size:14px;font-weight:600}
+  .file .s{font-size:12px;color:var(--dim2);direction:ltr;text-align:right}
+  .file button{width:100%;justify-content:center}
+
+  /* Past Runs Table */
+  .runs-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:20px}
+  .runs-card h3{margin:0 0 12px;font-size:16px;font-weight:700}
+  .runs-list{display:flex;flex-direction:column;gap:8px}
+  .run-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;
+    border-radius:10px;background:var(--card2);border:1px solid var(--line);font-size:13.5px;flex-wrap:wrap}
+  .run-item.active{border-color:var(--acc);background:var(--acc-glow)}
+  .run-info{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .run-info .title{font-weight:700}
+  .run-info .badge{font-size:11px;padding:2px 7px;border-radius:6px;background:var(--line);color:var(--dim)}
+  .run-actions{display:flex;gap:6px}
+
+  /* Log Box */
+  details.logbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:20px}
+  details.logbox summary{cursor:pointer;font-size:14px;font-weight:600;color:var(--dim);list-style:none}
+  details.logbox summary::-webkit-details-marker{display:none}
+  details.logbox summary::before{content:"▸ ";color:var(--acc)}
+  details.logbox[open] summary::before{content:"▾ "}
+  #log{margin-top:10px;max-height:240px;overflow:auto;font:12.5px/1.7 Consolas,monospace;
+    color:#9fb2c6;white-space:pre-wrap;unicode-bidi:plaintext;background:var(--card2);padding:10px 12px;border-radius:8px}
+
+  .banner{display:none;margin-bottom:16px;padding:12px 16px;border-radius:12px;
+    border:1px solid #5b2a2a;background:#2a1616;color:#ffb3b3;font-size:14px}
+  .banner.on{display:block}
+
+  /* Guide Accordion */
+  details.guide{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:20px}
+  details.guide summary{cursor:pointer;font-size:14px;font-weight:600;color:var(--acc);list-style:none}
+  details.guide summary::-webkit-details-marker{display:none}
+  details.guide summary::before{content:"💡 ";font-size:15px}
+  .guide-content{margin-top:10px;font-size:13.5px;color:var(--dim);line-height:1.8}
+  .guide-content ol{margin:8px 0;padding-inline-start:22px}
+  .guide-content li{margin-bottom:6px}
+
+  @media (max-width:720px){
+    .files{grid-template-columns:1fr}
+    .stage{gap:10px;padding:12px}
+    .chip{min-width:45%}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <h1>مُفَرِّغ القناة <span class="tag">إصدار 2.0</span></h1>
+      <div class="sub">تفريغ قنوات يوتيوب بالكامل، والبحث في الكلمات بالثانية بدون إنترنت وبدون تداخل بين القنوات.</div>
+    </div>
+    <div class="topbtns">
+      <button id="btnTheme" class="theme-btn" title="تبديل المظهر (فاتح / داكن)">🌙</button>
+      <button id="btnUpdate" title="تحديث أداة التنزيل yt-dlp لأحدث إصدار">تحديث الأداة</button>
+      <button id="btnFolder" title="فتح مجلد التشغيل الحالي على جهازك">فتح المجلد</button>
+      <button id="btnStop" class="danger" disabled>إيقاف</button>
+    </div>
+  </header>
+
+  <!-- 1-Click Complete Pipeline Box -->
+  <div class="quick-box">
+    <h2>⚡ تشغيل كامل تلقائي (بنقرة واحدة)</h2>
+    <div class="hint">الصق رابط القناة (مثل @channel) أو رابط أي فيديو، واضغط "ابدأ الكل". الأداة ستتكفل بجميع المراحل وتفتح لك صفحة البحث فور الانتهاء!</div>
+    <div class="quick-row">
+      <input type="text" id="targetUrl" class="inp-url" placeholder="الصق رابط أي قناة مثل: https://www.youtube.com/@ChannelName أو @اسم_القناة" autocomplete="off" spellcheck="false">
+      <button id="btnRunAll" class="success" style="font-size:15px;padding:12px 24px">⚡ ابدأ التفريغ والبحث الآن</button>
+    </div>
+    <div class="quick-options">
+      <label title="فتح صفحة البحث في متصفحك تلقائياً عند انتهاء العمل"><input type="checkbox" id="chkAutoOpen" checked> فتح صفحة البحث فور الانتهاء</label>
+      <label title="تسريع التنزيل باستخدام مسارات تنزيل متوازية"><input type="checkbox" id="chkParallel" checked> تنزيل متوازي سريع (4 مسارات)</label>
+      <label title="إنشاء مجلد تشغيل مستقل جديد تماماً"><input type="checkbox" id="chkNewRun" checked> مجلد تشغيل مستقل جديد (لمنع أي تداخل)</label>
+    </div>
+  </div>
+
+  <!-- Run Switcher Bar -->
+  <div class="run-bar">
+    <div class="left">
+      <span style="font-weight:600">📁 مجلد التشغيل النشط:</span>
+      <select id="runSelect"></select>
+      <button id="btnNewRunModal" style="padding:6px 12px;font-size:13px">＋ تشغيل جديد</button>
+    </div>
+    <div class="folder-label" id="runFolderLabel">runs/...</div>
+  </div>
+
+  <!-- Metric Chips -->
+  <div class="chips">
+    <div class="chip"><span>إجمالي الفيديوهات</span><div class="val" id="cVids">—</div></div>
+    <div class="chip"><span>مدة الساعات</span><div class="val" id="cHours">—</div></div>
+    <div class="chip"><span>التفريغات المحملة</span><div class="val" id="cCaps">—</div></div>
+    <div class="chip"><span>الكلمات المجهزة</span><div class="val" id="cWords">—</div></div>
+    <div class="chip"><span>إصدار yt-dlp</span><div class="val" id="cYtdlp" style="font-size:15px">—</div></div>
+  </div>
+
+  <!-- Big Hero Search Button (when ready) -->
+  <div class="hero-action" id="heroAction" style="display:none">
+    <div class="info">
+      <h3>🎉 صفحة البحث جاهزة للاستخدام!</h3>
+      <p id="heroInfo">تطبيق بحث كامل بدون إنترنت يحوي كل كلمات القناة مع مشغّل فيديو داخلي وروابط الثواني.</p>
+    </div>
+    <button id="btnHeroOpen" class="primary">🔍 فتح صفحة البحث الآن</button>
+  </div>
+
+  <!-- Overall Progress -->
+  <div class="overall">
+    <div class="top">
+      <div class="lbl" id="ovLabel">جاهز للاستخدام</div>
+      <div class="pct" id="ovPct">0%</div>
+    </div>
+    <div class="bar"><i id="ovBar"></i></div>
+  </div>
+
+  <div class="banner" id="banner"></div>
+
+  <!-- Step-by-Step Stages -->
+  <div class="stages" id="stages"></div>
+
+  <!-- Output Files -->
+  <div class="files">
+    <div class="file">
+      <div class="n">الملف المنسّق للقراءة</div>
+      <div class="s" id="fFmt">—</div>
+      <button data-open="formatted">فتح الملف</button>
+    </div>
+    <div class="file">
+      <div class="n">الملف الخام لقاعدة البحث</div>
+      <div class="s" id="fRaw">—</div>
+      <button data-open="unformatted">فتح الملف</button>
+    </div>
+    <div class="file">
+      <div class="n">صفحة البحث التفاعلية</div>
+      <div class="s" id="fPage">—</div>
+      <button data-open="page" class="primary">🔍 فتح صفحة البحث</button>
+    </div>
+  </div>
+
+  <!-- Run History Section -->
+  <div class="runs-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h3>📚 جميع التشغيلات والقنوات المحفوظة</h3>
+      <span style="font-size:12.5px;color:var(--dim)">كل تشغيل معزول تماماً في مجلد خاص</span>
+    </div>
+    <div class="runs-list" id="runsList"></div>
+  </div>
+
+  <!-- Simple Guide for Beginners -->
+  <details class="guide">
+    <summary>كيف تستخدم الأداة ببساطة؟ (دليل سريع للمبتدئين)</summary>
+    <div class="guide-content">
+      <ol>
+        <li><b>أسهل طريقة:</b> الصق رابط القناة أو رابط فيديو في الصندوق الأخضر بالأعلى، واضغط <b>«⚡ ابدأ التفريغ والبحث الآن»</b>. الأداة ستقوم بجميع الخطوات (جلب الفيديوهات، تنزيل النصوص، التوقيت، بناء الصفحة) وتفتح لك النتيجة تلقائيًا!</li>
+        <li><b>أمان وعدم تداخل:</b> كل تشغيل يوضع في مجلد مستقل داخل <code>runs/</code>؛ يمكنك تفريغ نفس القناة عدة مرات أو قنوات مختلفة دون أن يتأثر أي ملف.</li>
+        <li><b>التحكم اليدوي:</b> إذا أردت تنفيذ مرحلة معينة فقط، استخدم أزرار المراحل من 1 إلى 5.</li>
+        <li><b>صفحة البحث:</b> بعد اكتمال العمل، صفحة <code>search.html</code> تعمل <b>بدون إنترنت</b> نهائيًا، وتحتوي على مشغّل فيديو مدمج، وبحث عادي وبحث بالتقارب وخيارات تصدير إلى CSV ونصوص.</li>
+      </ol>
+    </div>
+  </details>
+
+  <!-- Execution Logs -->
+  <details class="logbox">
+    <summary>سجل العمليات المباشر (Logs)</summary>
+    <div id="log"></div>
+  </details>
+
+</div>
+
+<script>
+"use strict";
+const STAGES = [
+  {id:1, title:"المرحلة 1: قائمة الفيديوهات", desc:"استخراج عناوين الفيديوهات ومدتها من رابط القناة أو الفيديو."},
+  {id:2, title:"المرحلة 2: تحميل التفريغات الآلية", desc:"تنزيل تفريغ يوتيوب الآلي لكل فيديو بالتوازي مع إمكانية الإكمال."},
+  {id:3, title:"المرحلة 3: تجهيز الكلمات والتوقيتات", desc:"تنظيف الكلمات وتحديد ثانية كل كلمة بدقة وتنسيقها دقيقة بدقيقة."},
+  {id:4, title:"المرحلة 4: دمج الملفات الشاملة", desc:"إنتاج ملف القراءة المنسّق وملف البحث الخام لكامل القناة."},
+  {id:5, title:"المرحلة 5: بناء صفحة البحث المستقلة", desc:"توليد ملف search.html النهائي الذي يعمل بدون إنترنت مع المشغّل الداخلي."}
+];
+
+const LABEL = {idle:"بانتظار البدء", ready:"جاهز", running:"قيد المعالجة…", done:"مكتمل ✓", error:"حدث خطأ"};
+let S = null, refs = {}, lastLog = "";
+
+function el(tag, cls, text){
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+function buildCards(){
+  const box = document.getElementById("stages");
+  box.innerHTML = "";
+  refs = {};
+  for (const st of STAGES){
+    const card = el("div", "stage"); card.dataset.s = "idle";
+    const num = el("div", "num", String(st.id));
+    const body = el("div", "body");
+    const head = el("div", "head");
+    const h2 = el("h2", null, st.title);
+    const pill = el("div", "pill", LABEL.idle);
+    head.append(h2, pill);
+    const desc = el("p", "desc", st.desc);
+    body.append(head, desc);
+
+    const row = el("div", "stage-row");
+    const bar = el("div", "bar");
+    const fill = el("i");
+    bar.appendChild(fill);
+    const btn = el("button", "primary", "ابدأ هذه المرحلة");
+    row.append(bar, btn);
+    body.append(row);
+
+    const meta = el("div", "meta");
+    body.append(meta);
+    card.append(num, body);
+    box.appendChild(card);
+
+    refs["card" + st.id] = card;
+    refs["pill" + st.id] = pill;
+    refs["fill" + st.id] = fill;
+    refs["btn" + st.id] = btn;
+    refs["meta" + st.id] = meta;
+  }
+}
+
+function num(n){ return (n || 0).toLocaleString("en"); }
+function mb(n){ return n ? (n / 1048576).toFixed(1) + " م.ب" : "—"; }
+
+function render(s){
+  S = s;
+  const stats = s.stats || {}, outs = stats.sizes || {};
+
+  // Metrics
+  document.getElementById("cVids").textContent = stats.videos ? num(stats.videos) : "—";
+  document.getElementById("cHours").textContent = stats.hours ? num(Math.round(stats.hours)) : "—";
+  document.getElementById("cCaps").textContent = stats.videos ? num(stats.captions) + " / " + num(stats.videos) : "—";
+  document.getElementById("cWords").textContent = stats.videos ? num(stats.words) + " / " + num(stats.videos) : "—";
+  document.getElementById("cYtdlp").textContent = s.ytdlp || "—";
+
+  // Target input sync
+  if (s.meta && s.meta.target && !document.getElementById("targetUrl").value){
+    document.getElementById("targetUrl").value = s.meta.target;
+  }
+
+  // Active run folder
+  document.getElementById("runFolderLabel").textContent = "runs/" + (s.active_run || "...");
+
+  // Hero Search Action Bar
+  const hero = document.getElementById("heroAction");
+  if (stats.page_exists){
+    hero.style.display = "flex";
+    document.getElementById("heroInfo").textContent =
+      "تطبيق بحث كامل لقناة «" + (s.meta.title || s.meta.name || "") + "» (" +
+      num(stats.videos) + " فيديو · " + (stats.hours ? Math.round(stats.hours) + " ساعة" : "") + ").";
+  } else {
+    hero.style.display = "none";
+  }
+
+  // Stages progress
+  let overall = 0;
+  for (const st of s.stages || []){
+    const i = st.id;
+    const card = refs["card" + i]; if (!card) continue;
+    card.dataset.s = st.status || "idle";
+    const pill = refs["pill" + i];
+    pill.className = "pill " + (st.status || "idle");
+    pill.textContent = LABEL[st.status] || st.status;
+
+    const meta = refs["meta" + i];
+    meta.innerHTML = "";
+    if (st.total && i > 1){
+      const f = el("span"); f.innerHTML = "<b>" + num(st.done || 0) + "</b> من <b>" + num(st.total) + "</b>";
+      meta.appendChild(f);
+    }
+    if (st.eta && st.status === "running"){
+      const e = el("span"); e.innerHTML = "باقي <b>" + st.note + "</b>";
+      meta.appendChild(e);
+    } else if (st.note){
+      const n = el("span"); n.textContent = st.note; meta.appendChild(n);
+    }
+
+    const fill = refs["fill" + i];
+    if (fill){
+      const frac = st.total ? Math.min(1, (st.done || 0) / st.total) : (st.status === "done" ? 1 : 0);
+      fill.style.width = (frac * 100).toFixed(1) + "%";
+      fill.className = st.status === "done" ? "done" : st.status === "error" ? "err"
+                     : st.status === "running" ? "live" : "";
+    }
+    const frac = st.status === "done" ? 1 : (st.total ? Math.min(1, (st.done || 0) / st.total) : 0);
+    overall += frac / 5;
+  }
+
+  // Overall Bar
+  const pct = Math.round(overall * 100);
+  document.getElementById("ovPct").textContent = pct + "%";
+  document.getElementById("ovBar").style.width = pct + "%";
+  document.getElementById("ovBar").className = s.running ? "live" : (pct === 100 ? "done" : "");
+  document.getElementById("ovLabel").textContent = s.running
+    ? (s.mode === "pipeline" ? "⚡ تشغيل كامل تلقائي جاري…" : "المرحلة " + s.stage + " جارية…")
+    : (pct === 100 ? "اكتملت جميع المراحل بنجاح!" : "جاهز للبدء");
+
+  // Running buttons state
+  const running = !!s.running;
+  document.getElementById("btnStop").disabled = !running;
+  document.getElementById("btnRunAll").disabled = running;
+  document.getElementById("btnUpdate").disabled = running;
+
+  const canStage = {
+    1: !running,
+    2: !running && stats.videos > 0,
+    3: !running && stats.captions > 0,
+    4: !running && stats.words > 0,
+    5: !running && stats.unformatted_exists
+  };
+  for (const st of s.stages || []){
+    const b = refs["btn" + st.id]; if (!b) continue;
+    b.disabled = !canStage[st.id];
+    if (st.status === "done") b.textContent = "إعادة تنفيذ";
+    else b.textContent = "ابدأ هذه المرحلة";
+  }
+
+  // File sizes
+  document.getElementById("fFmt").textContent = stats.formatted_exists ? mb(outs.formatted) : "لم يُنشأ بعد";
+  document.getElementById("fRaw").textContent = stats.unformatted_exists ? mb(outs.unformatted) : "لم يُنشأ بعد";
+  document.getElementById("fPage").textContent = stats.page_exists ? mb(outs.page) : "لم تُنشأ بعد";
+  document.querySelector('[data-open="formatted"]').disabled = !stats.formatted_exists;
+  document.querySelector('[data-open="unformatted"]').disabled = !stats.unformatted_exists;
+  document.querySelector('[data-open="page"]').disabled = !stats.page_exists;
+
+  // Banner
+  const banner = document.getElementById("banner");
+  if (s.error){ banner.classList.add("on"); banner.textContent = "تنبيه: " + s.error; }
+  else banner.classList.remove("on");
+
+  // Runs dropdown
+  renderRunsDropdown(s.runs || [], s.active_run);
+  renderRunsList(s.runs || [], s.active_run);
+
+  // Live log
+  const logEl = document.getElementById("log");
+  const txt = (s.log || []).join("\n");
+  if (txt !== lastLog){
+    const atBottom = logEl.scrollTop + logEl.clientHeight >= logEl.scrollHeight - 50;
+    lastLog = txt;
+    logEl.textContent = txt;
+    if (atBottom) logEl.scrollTop = logEl.scrollHeight;
+  }
+}
+
+function renderRunsDropdown(runs, activeId){
+  const sel = document.getElementById("runSelect");
+  if (sel._userInteracting) return;
+  const curVal = sel.value;
+  sel.innerHTML = "";
+  for (const r of runs){
+    const opt = document.createElement("option");
+    opt.value = r.id;
+    opt.textContent = (r.title || r.name) + " (" + (r.videos ? r.videos + " فيديو" : "جديد") + ") — " + r.created_at;
+    if (r.id === activeId) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+function renderRunsList(runs, activeId){
+  const box = document.getElementById("runsList");
+  box.innerHTML = "";
+  if (!runs.length){
+    box.innerHTML = '<div style="color:var(--dim);text-align:center;padding:12px">لا توجد تشغيلات سابقة.</div>';
+    return;
+  }
+  for (const r of runs){
+    const item = el("div", "run-item" + (r.id === activeId ? " active" : ""));
+    const info = el("div", "run-info");
+    const t = el("span", "title", r.title || r.name);
+    const badge = el("span", "badge", r.videos ? num(r.videos) + " فيديو" : "فارغ");
+    const date = el("span", "badge", r.created_at || "");
+    info.append(t, badge, date);
+
+    const acts = el("div", "run-actions");
+    if (r.page_exists){
+      const bOpen = el("button", "primary", "🔍 فتح البحث");
+      bOpen.style.padding = "5px 10px"; bOpen.style.fontSize = "12px";
+      bOpen.onclick = () => post("/api/open", {what: "page", run_id: r.id});
+      acts.appendChild(bOpen);
+    }
+    if (r.id !== activeId){
+      const bSel = el("button", null, "التبديل إليه");
+      bSel.style.padding = "5px 10px"; bSel.style.fontSize = "12px";
+      bSel.onclick = async () => { await post("/api/runs/select", {run_id: r.id}); poll(); };
+      acts.appendChild(bSel);
+    }
+    const bDel = el("button", "danger", "حذف");
+    bDel.style.padding = "5px 10px"; bDel.style.fontSize = "12px";
+    bDel.onclick = async () => {
+      if (!confirm("هل أنت متأكد من حذف هذا التشغيل وكل ملفاته؟\n" + (r.title || r.id))) return;
+      await post("/api/runs/delete", {run_id: r.id}); poll();
+    };
+    acts.appendChild(bDel);
+
+    item.append(info, acts);
+    box.appendChild(item);
+  }
+}
+
+async function poll(){
+  try {
+    const r = await fetch("/api/state", {cache: "no-store"});
+    render(await r.json());
+  } catch (e) { /* Server temporarily busy */ }
+}
+
+async function post(url, body){
+  const r = await fetch(url, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(body || {})
+  });
+  return r.json().catch(() => ({}));
+}
+
+function wire(){
+  // Stop
+  document.getElementById("btnStop").onclick = async () => {
+    document.getElementById("btnStop").disabled = true;
+    await post("/api/stop");
+    poll();
+  };
+
+  // Open folder
+  document.getElementById("btnFolder").onclick = () => post("/api/open", {what: "folder"});
+
+  // Update yt-dlp
+  document.getElementById("btnUpdate").onclick = async () => {
+    const r = await post("/api/update");
+    if (!r.ok) alert(r.msg || "تعذّر البدء");
+    poll();
+  };
+
+  // Run Switcher
+  const sel = document.getElementById("runSelect");
+  sel.onchange = async () => {
+    await post("/api/runs/select", {run_id: sel.value});
+    poll();
+  };
+
+  // New Run Button
+  document.getElementById("btnNewRunModal").onclick = async () => {
+    const url = prompt("الصق رابط القناة أو الفيديو للتشغيل الجديد:");
+    if (!url || !url.trim()) return;
+    const r = await post("/api/runs/create", {target: url.trim()});
+    if (r.ok){
+      poll();
+    } else {
+      alert(r.msg || "تعذّر إنشاء التشغيل");
+    }
+  };
+
+  // 1-Click Complete Run
+  document.getElementById("btnRunAll").onclick = async () => {
+    const target = (document.getElementById("targetUrl").value || "").trim();
+    if (!target){
+      document.getElementById("targetUrl").focus();
+      alert("يرجى كتابة أو لصق رابط القناة أولاً.");
+      return;
+    }
+    const createNew = document.getElementById("chkNewRun").checked;
+    const autoOpen = document.getElementById("chkAutoOpen").checked;
+    const parallel = document.getElementById("chkParallel").checked;
+
+    document.getElementById("btnRunAll").disabled = true;
+    const r = await post("/api/run_pipeline", {
+      target: target,
+      create_new: createNew,
+      auto_open: autoOpen,
+      workers: parallel ? 4 : 1
+    });
+    if (!r.ok){
+      alert(r.msg || "تعذّر البدء");
+      document.getElementById("btnRunAll").disabled = false;
+    }
+    poll();
+  };
+
+  // Hero Open Button
+  document.getElementById("btnHeroOpen").onclick = () => post("/api/open", {what: "page"});
+
+  // File outputs
+  document.querySelector('[data-open="formatted"]').onclick = () => post("/api/open", {what: "formatted"});
+  document.querySelector('[data-open="unformatted"]').onclick = () => post("/api/open", {what: "unformatted"});
+  document.querySelector('[data-open="page"]').onclick = () => post("/api/open", {what: "page"});
+
+  // Individual stages
+  for (const st of STAGES){
+    const b = refs["btn" + st.id];
+    b.onclick = async () => {
+      b.disabled = true;
+      const target = (document.getElementById("targetUrl").value || "").trim();
+      const r = await post("/api/run", {stage: st.id, target: target});
+      if (!r.ok){
+        alert(r.msg || "تعذّر البدء");
+        b.disabled = false;
+      }
+      poll();
+    };
+  }
+
+  // Theme toggle
+  document.getElementById("btnTheme").onclick = () => {
+    const isLight = document.body.classList.toggle("light");
+    document.getElementById("btnTheme").textContent = isLight ? "☀️" : "🌙";
+    try { localStorage.setItem("cs_theme", isLight ? "light" : "dark"); } catch(e){}
+  };
+  try {
+    if (localStorage.getItem("cs_theme") === "light"){
+      document.body.classList.add("light");
+      document.getElementById("btnTheme").textContent = "☀️";
+    }
+  } catch(e){}
+}
+
+buildCards();
+wire();
+poll();
+setInterval(poll, 900);
+</script>
+</body>
+</html>
